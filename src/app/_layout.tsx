@@ -1,14 +1,44 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { CartProvider, useCart } from "@/contexts/cart-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs as WebTabs } from "expo-router/tabs";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { Platform, useWindowDimensions } from "react-native";
+import { Platform, Text, useWindowDimensions, View } from "react-native";
 
 export default function Layout() {
   return (
     <ThemeProvider>
-      <TabsLayout />
+      <CartProvider>
+        <TabsLayout />
+      </CartProvider>
     </ThemeProvider>
+  );
+}
+
+function CartBadge() {
+  const { totalItems } = useCart();
+
+  if (totalItems === 0) return null;
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        top: -6,
+        right: -10,
+        backgroundColor: '#FF3B30',
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 5,
+      }}
+    >
+      <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+        {totalItems > 99 ? '99+' : totalItems}
+      </Text>
+    </View>
   );
 }
 
@@ -43,15 +73,20 @@ function WebTabsLayout() {
       <WebTabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: (props) => <MaterialIcons {...props} name="home" />,
+          title: "Menu",
+          tabBarIcon: (props) => <MaterialIcons {...props} name="restaurant-menu" />,
         }}
       />
       <WebTabs.Screen
-        name="info"
+        name="cart"
         options={{
-          title: "Info",
-          tabBarIcon: (props) => <MaterialIcons {...props} name="info" />,
+          title: "Cart",
+          tabBarIcon: (props) => (
+            <View>
+              <MaterialIcons {...props} name="shopping-cart" />
+              <CartBadge />
+            </View>
+          ),
         }}
       />
     </WebTabs>
@@ -62,26 +97,29 @@ function NativeTabsLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Menu</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           {...Platform.select({
-            ios: { sf: { default: "house", selected: "house.fill" } },
+            ios: { sf: { default: "list.bullet", selected: "list.bullet" } },
             default: {
-              src: <NativeTabs.Trigger.VectorIcon family={MaterialIcons} name="home" />,
+              src: <NativeTabs.Trigger.VectorIcon family={MaterialIcons} name="restaurant-menu" />,
             },
           })}
         />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="info">
-        <NativeTabs.Trigger.Label>Info</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="cart">
+        <NativeTabs.Trigger.Label>Cart</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           {...Platform.select({
-            ios: { sf: "cursorarrow.rays" },
+            ios: { sf: { default: "cart", selected: "cart.fill" } },
             default: {
-              src: <NativeTabs.Trigger.VectorIcon family={MaterialIcons} name="info" />,
+              src: <NativeTabs.Trigger.VectorIcon family={MaterialIcons} name="shopping-cart" />,
             },
           })}
         />
+        <NativeTabs.Trigger.Badge>
+          <CartBadge />
+        </NativeTabs.Trigger.Badge>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
